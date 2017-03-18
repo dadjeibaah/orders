@@ -1,0 +1,14 @@
+{
+  "name": "orders",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node index.js",
+    "test": "jasmine-node spec"
+  },
+  "dependencies": {
+    "prettyjson": "^1.2.1"
+  },
+  "devDependencies": {
+    "jasmine-node": "^1.14.5"
+  }
+}
