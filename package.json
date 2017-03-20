@@ -2,11 +2,23 @@
   "name": "orders",
   "version": "1.0.0",
   "scripts": {
-    "start": "node index.js",
+    "start": "node server.js",
     "test": "jasmine-node --verbose spec"
   },
   "dependencies": {
-    "prettyjson": "^1.2.1"
+    "prettyjson": "^1.2.1",
+    "boom": "^3.2.2",
+    "good": "^7.0.1",
+    "good-console": "^6.1.2",
+    "good-squeeze": "^4.0.0",
+    "hapi": "^13.4.1",
+    "hapi-swagger": "^6.1.0",
+    "inert": "^4.0.0",
+    "joi": "^6.4.2",
+    "lodash": "^4.17.4",
+    "moment": "^2.14.1",
+    "vision": "^4.1.0"
+
   },
   "devDependencies": {
     "jasmine-node": "^1.14.5",

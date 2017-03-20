@@ -82,6 +82,6 @@ function calculateTotalFundDistributions(fundDistributions) {
 }
 distributions.combineDistributionsForOrder = combineDistributionsForOrder;
 distributions.splitPriceOnDistribution = splitPriceOnDistribution;
-distributions.prototype.calculateFundDistribution = calculateFundDistribution;
-distributions.prototype.calculateTotalFundDistributions = calculateTotalFundDistributions;
+distributions.calculateFundDistribution = calculateFundDistribution;
+distributions.calculateTotalFundDistributions = calculateTotalFundDistributions;
 module.exports = distributions;

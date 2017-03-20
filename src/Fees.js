@@ -40,9 +40,9 @@ fees.convertCurrencyToNum = function(currency){
 
 };
 
-fees.prototype.getFeesFile = getFeesFile;
-fees.prototype.flattenFees = flattenFees;
-fees.prototype.getFeeAmounts = getFeeAmounts;
-fees.prototype.getFeeDistributions = getFeeDistributions;
+fees.getFeesFile = getFeesFile;
+fees.flattenFees = flattenFees;
+fees.getFeeAmounts = getFeeAmounts;
+fees.getFeeDistributions = getFeeDistributions;
 
 module.exports = fees;

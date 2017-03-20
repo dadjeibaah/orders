@@ -19,22 +19,23 @@ main.prototype.run = function () {
     fs.readFileAsync(ORDER_FILE_NAME)
         .then(JSON.parse)
         .then(processOrdersToFees)
-        .then(function (orders) {
-            printInfo(orders);
-            fees.getFeesFile(FEES)
-                .then(JSON.parse)
-                .then(fees.getFeeDistributions)
-                .then(function(feeDistributions){
-                    var fundDistributions =_.map(orders, function(order){
-                        return distribution.calculateFundDistribution(order, feeDistributions);
-                    });
-                    fundDistributions.push(distribution.calculateTotalFundDistributions(fundDistributions));
-                    return fundDistributions;
-                }).then(printInfo);
-        })
+        .then(getDistributionsFromOrders)
         .catch(printInfo);
 };
 
+function getDistributionsFromOrders(orders) {
+    printInfo(orders);
+    return Fees.getFeesFile(FEES)
+        .then(JSON.parse)
+        .then(Fees.getFeeDistributions)
+        .then(function(feeDistributions){
+            var fundDistributions =_.map(orders, function(order){
+                return Distributions.calculateFundDistribution(order, feeDistributions);
+            });
+            fundDistributions.push(Distributions.calculateTotalFundDistributions(fundDistributions));
+            return fundDistributions;
+        });
+}
 function multiPageCalculation(orderItem, fees) {
     var num = [(PER_PAGE_DELIMIT * Number(fees[orderItem.type]['flat'].amount)),
         ((orderItem["pages"] - PER_PAGE_DELIMIT) * Number(fees[orderItem.type]['per-page'].amount))]
@@ -117,7 +118,8 @@ main.prototype.multiPageCalculation = multiPageCalculation;
 main.prototype.singlePageCalculation = singlePageCalculation;
 main.prototype.calculateOrderTotal = calculateOrderTotal;
 main.prototype.convertNumToCurrency = convertNumToCurrency;
-main.prototype.processOrdersToFees = processOrdersToFees;
+main.processOrdersToFees = processOrdersToFees;
+main.getDistributionsFromOrders = getDistributionsFromOrders;
 
 module.exports = main;
 /*
