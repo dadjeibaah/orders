@@ -2,44 +2,60 @@
 var fs = require('fs');
 var _ = require('lodash');
 var prettyjson = require('prettyjson');
+var Distributions = require('./Distributions');
+var Fees = require('./Fees');
 var Promise = require('bluebird');
+var ORDER_FILE_NAME = './src/orders.json';
+var FEES = './src/fees.json';
+var PER_PAGE_DELIMIT = 1;
 Promise.promisifyAll(fs);
 
 var main = function main() {
 };
 
 main.prototype.run = function () {
+    var distribution = new Distributions();
+    var fees = new Fees();
     fs.readFileAsync(ORDER_FILE_NAME)
         .then(JSON.parse)
         .then(processOrdersToFees)
-        .then(printInfo)
+        .then(function (orders) {
+            printInfo(orders);
+            fees.getFeesFile(FEES)
+                .then(JSON.parse)
+                .then(fees.getFeeDistributions)
+                .then(function(feeDistributions){
+                    var fundDistributions =_.map(orders, function(order){
+                        return distribution.calculateFundDistribution(order, feeDistributions);
+                    });
+                    fundDistributions.push(distribution.calculateTotalFundDistributions(fundDistributions));
+                    return fundDistributions;
+                }).then(printInfo);
+        })
         .catch(printInfo);
 };
 
-
-var ORDER_FILE_NAME = './src/orders.json';
-var FEES = './src/fees.json';
-var PER_PAGE_DELIMIT = 1;
-
-function multiPageCalculation(orderItem, fees){
-    return '$'+[(PER_PAGE_DELIMIT * Number(fees[orderItem.type]['flat'].amount)),
+function multiPageCalculation(orderItem, fees) {
+    var num = [(PER_PAGE_DELIMIT * Number(fees[orderItem.type]['flat'].amount)),
         ((orderItem["pages"] - PER_PAGE_DELIMIT) * Number(fees[orderItem.type]['per-page'].amount))]
         .reduce(function (accum, value) {
             return accum + value;
-        }).toFixed(2);
+        });
+    return convertNumToCurrency(num);
 }
 
-function singlePageCalculation(orderItem, fees){
-    return '$'+[(PER_PAGE_DELIMIT * Number(fees[orderItem.type]['flat'].amount))]
+function singlePageCalculation(orderItem, fees) {
+    var num = [(PER_PAGE_DELIMIT * Number(fees[orderItem.type]['flat'].amount))]
         .reduce(function (accum, value) {
             return accum + value
-        }).toFixed(2);
+        });
+    return convertNumToCurrency(num);
 }
 
 function calculateFee(orderItems, fees) {
     return _.map(orderItems, function (orderItem) {
         var typeName, orderItemTotal = {};
-        typeName = 'Order item ' + '(' + orderItem.type + ')';
+        typeName = 'Order item ' +  orderItem.type;
         if (orderItem.pages > PER_PAGE_DELIMIT) {
             orderItemTotal[typeName] = multiPageCalculation(orderItem, fees);
         } else {
@@ -49,38 +65,40 @@ function calculateFee(orderItems, fees) {
     });
 }
 
-
-function convertOrdersToOrderCalculator(order) {
-    var result = {};
-    result["Order ID"] = order["order_number"];
-    result["Order item " + order['type']] = calculateFee(order["order_items"]);
-    return result;
-}
-
 function printInfo(info) {
     console.log(prettyjson.render(info));
 }
 
+function convertNumToCurrency(num) {
+    return '$' + num.toFixed(2);
+}
 
-function aggregateOrders(data) {
-    return _.map(data, convertOrdersToOrderCalculator);
-
+function calculateOrderTotal(calculatedFees) {
+    var result = _.flatMap(calculatedFees, function (n) {
+        return Number(_.values(n)[0].slice(1));
+    }).reduce(function (accum, value) {
+        return accum + value;
+    });
+    return {'Order Total': convertNumToCurrency(result)};
 }
 
 function processOrdersToFees(orders) {
     return fs.readFileAsync(FEES, 'utf8')
         .then(JSON.parse)
         .then(flattenFees)
-        .then(function(fees){
+        .then(function (fees) {
             return _.map(orders, function (order) {
-                var newOrder = {};
-                newOrder["Order ID " + order["order_number"]] = calculateFee(order["order_items"], fees);
+                var calculatedFees, orderTotal, newOrder = {};
+                calculatedFees = calculateFee(order["order_items"], fees);
+
+                newOrder["Order ID"] = order["order_number"];
+                newOrder["Orders"] = calculatedFees;
+                calculatedFees.push(calculateOrderTotal(calculatedFees));
                 return newOrder;
             })
         });
 
 }
-
 
 function flattenFees(fees) {
     return _.map(fees, function (fee) {
@@ -97,6 +115,8 @@ main.prototype.calculateFee = calculateFee;
 main.prototype.flattenFees = flattenFees;
 main.prototype.multiPageCalculation = multiPageCalculation;
 main.prototype.singlePageCalculation = singlePageCalculation;
+main.prototype.calculateOrderTotal = calculateOrderTotal;
+main.prototype.convertNumToCurrency = convertNumToCurrency;
 main.prototype.processOrdersToFees = processOrdersToFees;
 
 module.exports = main;
@@ -128,4 +148,5 @@ module.exports = main;
  *   of the amounts for each type of fee in fees.json?
  *
  *
+ * Can we change the order result layout slightly?
  * */

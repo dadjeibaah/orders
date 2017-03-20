@@ -94,16 +94,16 @@
             var main, result, expected;
             main = new Main();
             expected = [
-                {"Order item (Real Property Recording)": "$28.00"},
-                {"Order item (Real Property Recording)": "$26.00"},
-                {"Order item (Birth Certificate)": "$26.00"}
+                {"Order item Real Property Recording": "$28.00"},
+                {"Order item Real Property Recording": "$26.00"},
+                {"Order item Birth Certificate": "$26.00"}
             ];
             result = main.calculateFee(mockOrderItems, mockFlattenedFees);
             expect(result).toEqual(expected);
         });
 
         it("should invert the details of fees to make the key the type", function () {
-            var main, expected;
+            var main, expected, result;
             expected = {
                 "Real Property Recording": {
                     "flat": {
@@ -127,21 +127,39 @@
 
             };
             main = new Main();
-            var result = main.flattenFees(mockFees);
+            result = main.flattenFees(mockFees);
             expect(result['Real Property Recording']).toEqual(expected['Real Property Recording']);
         });
 
         it("should return a calculation based on fees for a multipage order", function(){
-            var main;
+            var main, result;
             main = new Main();
-            var result = main.multiPageCalculation(mockOrderItems[0],mockFlattenedFees);
+            result = main.multiPageCalculation(mockOrderItems[0],mockFlattenedFees);
             expect(result).toBe("$28.00");
         });
         it("should return a calculation based on fees for a singlepage order", function(){
-            var main;
+            var main,result;
             main = new Main();
-            var result = main.singlePageCalculation(mockOrderItems[2], mockFlattenedFees);
+            result = main.singlePageCalculation(mockOrderItems[2], mockFlattenedFees);
             expect(result).toBe("$26.00")
+        });
+        it("should calculate the order total for a list of order items", function(){
+            var main, testData, expected, result;
+            main = new Main();
+            testData = [
+                {"Order item (Real Property Recording)": "$28.00"},
+                {"Order item (Real Property Recording)": "$26.00"},
+                {"Order item (Birth Certificate)": "$26.00"}
+            ];
+            expected = {'Order Total':'$80.00'};
+            result = main.calculateOrderTotal(testData);
+            expect(result).toEqual(expected);
+        });
+        it("should return a dollar amount from a number", function(){
+            var main,result;
+                main = new Main();
+                result = main.convertNumToCurrency(10);
+                expect(result).toEqual('$10.00');
         });
     });
 })();
