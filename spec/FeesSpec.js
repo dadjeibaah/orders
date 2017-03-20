@@ -68,7 +68,7 @@ beforeEach(function () {
 
 describe("Fees tests", function () {
     it("should flatten the fees.json and apply a post process to each fee object on distribution", function () {
-        sut = new Fees();
+
         expected = {
             "Real Property Recording":
                 {
@@ -81,7 +81,7 @@ describe("Fees tests", function () {
                 "amount": "20.00"
             }
         };
-        result = sut.flattenFees(feesFile, function(fee){
+        result = Fees.flattenFees(feesFile, function(fee){
             return fee.distributions[0];
         });
         expect(result).toEqual(expected);
@@ -113,7 +113,7 @@ describe("Fees tests", function () {
 
 
         };
-        result = sut.flattenFees(feesFile, function(fee){
+        result = Fees.flattenFees(feesFile, function(fee){
             return _.keyBy(fee.fees, 'type');
         });
         expect(result).toEqual(expected);

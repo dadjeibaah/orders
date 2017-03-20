@@ -7,7 +7,8 @@
             {
                 "Order ID": "123",
                 "Orders": [
-                    {"Order item Real Property Recording": "$20.00"}
+                    {"Order item Real Property Recording": "$20.00"},
+                    {"Order Total":"$20.00"}
                 ]
             }
         ];
@@ -68,8 +69,7 @@
                         "Fund - Other": "$15.00"
                     }
                 };
-            sut = new Distributions();
-            result = sut.calculateFundDistribution(mockOrders[0], mockFeeDistribution);
+            result = Distributions.calculateFundDistribution(mockOrders[0], mockFeeDistribution);
             expect(result).toEqual(expected);
         });
         it('should distribute funds for a price based on the price distribution', function () {
@@ -164,17 +164,18 @@
             orderDistributions = [
                 {
                     "Order ID": "123",
-                    "Funds": [
-                        {"Fund - Recording Fee": "$5.00"},
-                        {"Fund - Other": "$15.00"}
-                    ]
+                    "Funds": {
+                        "Fund - Recording Fee": "$5.00",
+                        "Fund - Other": "$15.00"
+                    }
                 },
                 {
                     "Order ID": "456",
-                    "Funds": [
-                        {"Fund - Recording Fee": "$5.00"},
-                        {"Fund - Other": "$15.00"}
-                    ]
+                    "Funds": {
+                        "Fund - Recording Fee": "$5.00",
+                        "Fund - Other": "$15.00"
+                    }
+
                 }
             ];
             expected = {
@@ -183,25 +184,30 @@
                     "Fund - Other": "$30.00"
                 }
             };
-            result = sut.calculateTotalFundDistributions(orderDistributions);
+            result = Distributions.calculateTotalFundDistributions(orderDistributions);
             expect(result).toEqual(expected);
         });
         it("should combine all fund distributions for an order", function () {
             var funds, result, expected;
-            funds = {
+            funds = [
 
-                "Fund - Records Archive Fee": "$10.00",
-                "Fund - Records Management and Preservation Fee": "$10.00",
-                "Fund - Recording Fee": "$5.00",
-                "Fund - Courthouse Security": "$1.00",
-                "Fund - Other": "$2.00"
-            };
-            expected = {
-                "Fund - Records Archive Fee": "$20.00",
-                "Fund - Records Management and Preservation Fee": "$20.00",
-                "Fund - Recording Fee": "$10.00",
-                "Fund - Courthouse Security": "$2.00",
-                "Fund - Other": "$2.00"
+                {"Fund - Records Archive Fee": "$10.00"},
+                {"Fund - Records Management and Preservation Fee": "$10.00"},
+                {"Fund - Recording Fee": "$5.00"},
+                {"Fund - Courthouse Security": "$1.00"},
+                {"Fund - Other": "$2.00"},
+                {"Fund - Records Archive Fee": "$20.00"},
+                {"Fund - Records Management and Preservation Fee": "$20.00"},
+                {"Fund - Recording Fee": "$10.00"},
+                {"Fund - Courthouse Security": "$2.00"},
+                {"Fund - Other": "$2.00"}
+            ];
+            expected={
+                "Fund - Records Archive Fee":"$30.00",
+                "Fund - Records Management and Preservation Fee":"$30.00",
+                "Fund - Recording Fee": "$15.00",
+                "Fund - Courthouse Security":"$3.00",
+                "Fund - Other": "$4.00"
             };
             result = Distributions.combineDistributionsForOrder(funds);
             expect(result).toEqual(expected);

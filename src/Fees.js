@@ -44,5 +44,6 @@ fees.getFeesFile = getFeesFile;
 fees.flattenFees = flattenFees;
 fees.getFeeAmounts = getFeeAmounts;
 fees.getFeeDistributions = getFeeDistributions;
+fees.FeesFileName = './src/fees.json';
 
 module.exports = fees;

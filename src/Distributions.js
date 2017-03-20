@@ -13,7 +13,7 @@ function splitPriceOnDistribution(price, distribution) {
     funds = [];
     while (numPrice > 0) {
 
-        //if we have funds left to distribute and we still have distributions apply the first distribution
+        //if we have funds left to distribute and we still have distribution types apply the first distribution
         if (sortedDistributions.length > 0 && numPrice - Number(sortedDistributions[0].amount) >= 0) {
             var fundAmount = Number(sortedDistributions[0].amount);
             var fund = {};
@@ -80,8 +80,22 @@ function calculateTotalFundDistributions(fundDistributions) {
     });
     return {"Total distributions": totalDistributions};
 }
+
+function getDistributionsFromOrders(orders) {
+    return Fees.getFeesFile(Fees.FeesFileName)
+        .then(JSON.parse)
+        .then(Fees.getFeeDistributions)
+        .then(function(feeDistributions){
+            var fundDistributions =_.map(orders, function(order){
+                return calculateFundDistribution(order, feeDistributions);
+            });
+            fundDistributions.push(calculateTotalFundDistributions(fundDistributions));
+            return fundDistributions;
+        });
+}
 distributions.combineDistributionsForOrder = combineDistributionsForOrder;
 distributions.splitPriceOnDistribution = splitPriceOnDistribution;
 distributions.calculateFundDistribution = calculateFundDistribution;
 distributions.calculateTotalFundDistributions = calculateTotalFundDistributions;
+distributions.getDistributionsFromOrders = getDistributionsFromOrders;
 module.exports = distributions;

@@ -6,36 +6,30 @@ var Distributions = require('./Distributions');
 var Fees = require('./Fees');
 var Promise = require('bluebird');
 var ORDER_FILE_NAME = './src/orders.json';
-var FEES = './src/fees.json';
 var PER_PAGE_DELIMIT = 1;
 Promise.promisifyAll(fs);
 
-var main = function main() {
+var orders = function orders() {
 };
 
-main.prototype.run = function () {
-    var distribution = new Distributions();
-    var fees = new Fees();
+orders.printOrders = function () {
     fs.readFileAsync(ORDER_FILE_NAME)
         .then(JSON.parse)
         .then(processOrdersToFees)
-        .then(getDistributionsFromOrders)
+        .then(printInfo)
         .catch(printInfo);
 };
 
-function getDistributionsFromOrders(orders) {
-    printInfo(orders);
-    return Fees.getFeesFile(FEES)
+orders.printDistributions = function(){
+    fs.readFileAsync(ORDER_FILE_NAME)
         .then(JSON.parse)
-        .then(Fees.getFeeDistributions)
-        .then(function(feeDistributions){
-            var fundDistributions =_.map(orders, function(order){
-                return Distributions.calculateFundDistribution(order, feeDistributions);
-            });
-            fundDistributions.push(Distributions.calculateTotalFundDistributions(fundDistributions));
-            return fundDistributions;
-        });
-}
+        .then(processOrdersToFees)
+        .then(Distributions.getDistributionsFromOrders)
+        .then(printInfo)
+        .catch(printInfo)
+};
+
+
 function multiPageCalculation(orderItem, fees) {
     var num = [(PER_PAGE_DELIMIT * Number(fees[orderItem.type]['flat'].amount)),
         ((orderItem["pages"] - PER_PAGE_DELIMIT) * Number(fees[orderItem.type]['per-page'].amount))]
@@ -84,12 +78,12 @@ function calculateOrderTotal(calculatedFees) {
 }
 
 function processOrdersToFees(orders) {
-    return fs.readFileAsync(FEES, 'utf8')
+    return Fees.getFeesFile(Fees.FeesFileName)
         .then(JSON.parse)
-        .then(flattenFees)
+        .then(Fees.getFeeAmounts)
         .then(function (fees) {
             return _.map(orders, function (order) {
-                var calculatedFees, orderTotal, newOrder = {};
+                var calculatedFees, newOrder = {};
                 calculatedFees = calculateFee(order["order_items"], fees);
 
                 newOrder["Order ID"] = order["order_number"];
@@ -97,31 +91,22 @@ function processOrdersToFees(orders) {
                 calculatedFees.push(calculateOrderTotal(calculatedFees));
                 return newOrder;
             })
-        });
-
-}
-
-function flattenFees(fees) {
-    return _.map(fees, function (fee) {
-        var newFee = {};
-        newFee[fee['order_item_type']] = _.keyBy(fee.fees, 'type');
-        return newFee
-    }).reduce(_.extend);
+        }).catch(function(err){console.log(err)});
 
 }
 
 
-//main
-main.prototype.calculateFee = calculateFee;
-main.prototype.flattenFees = flattenFees;
-main.prototype.multiPageCalculation = multiPageCalculation;
-main.prototype.singlePageCalculation = singlePageCalculation;
-main.prototype.calculateOrderTotal = calculateOrderTotal;
-main.prototype.convertNumToCurrency = convertNumToCurrency;
-main.processOrdersToFees = processOrdersToFees;
-main.getDistributionsFromOrders = getDistributionsFromOrders;
 
-module.exports = main;
+//orders
+orders.calculateFee = calculateFee;
+orders.multiPageCalculation = multiPageCalculation;
+orders.singlePageCalculation = singlePageCalculation;
+orders.calculateOrderTotal = calculateOrderTotal;
+orders.convertNumToCurrency = convertNumToCurrency;
+orders.processOrdersToFees = processOrdersToFees;
+
+
+module.exports = orders;
 /*
  * Notes
  * - to ES6 or not ES6 that is the question
