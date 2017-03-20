@@ -36,7 +36,7 @@ function multiPageCalculation(orderItem, fees) {
         .reduce(function (accum, value) {
             return accum + value;
         });
-    return convertNumToCurrency(num);
+    return Fees.convertNumToCurrency(num);
 }
 
 function singlePageCalculation(orderItem, fees) {
@@ -44,7 +44,7 @@ function singlePageCalculation(orderItem, fees) {
         .reduce(function (accum, value) {
             return accum + value
         });
-    return convertNumToCurrency(num);
+    return Fees.convertNumToCurrency(num);
 }
 
 function calculateFee(orderItems, fees) {
@@ -64,17 +64,13 @@ function printInfo(info) {
     console.log(prettyjson.render(info));
 }
 
-function convertNumToCurrency(num) {
-    return '$' + num.toFixed(2);
-}
-
 function calculateOrderTotal(calculatedFees) {
     var result = _.flatMap(calculatedFees, function (n) {
         return Number(_.values(n)[0].slice(1));
     }).reduce(function (accum, value) {
         return accum + value;
     });
-    return {'Order Total': convertNumToCurrency(result)};
+    return {'Order Total': Fees.convertNumToCurrency(result)};
 }
 
 function processOrdersToFees(orders) {
@@ -102,7 +98,6 @@ orders.calculateFee = calculateFee;
 orders.multiPageCalculation = multiPageCalculation;
 orders.singlePageCalculation = singlePageCalculation;
 orders.calculateOrderTotal = calculateOrderTotal;
-orders.convertNumToCurrency = convertNumToCurrency;
 orders.processOrdersToFees = processOrdersToFees;
 
 
